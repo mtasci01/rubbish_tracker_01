@@ -1,0 +1,4 @@
+useful mongosh:
+$ use mt_rubbish
+$ db.reports.drop()
+$ db.reports.updateMany({"_id": { $gt: ObjectId('663246839e87f81403c7b7c7') }}, {$set: {createdAtUTC: 1714470273534}})
