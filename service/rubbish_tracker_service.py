@@ -10,11 +10,32 @@ import logging
 from bson import json_util
 import gridfs
 from shapely.geometry import Point
+import configparser
 
-mongoclient = pymongo.MongoClient("mongodb://localhost:27017/")
-db = mongoclient['mt_rubbish']
+def read_config():
+    # Create a ConfigParser object
+    config = configparser.ConfigParser()
+ 
+    # Read the configuration file
+    config.read('config.ini')
+ 
+    # Access values from the configuration file
+ 
+    # Return a dictionary with the retrieved values
+    config_values = {
+        'mongo_connstr': config.get('General', 'mongo_connstr'),
+        'mongo_db': config.get('General', 'mongo_db')
+    }
+ 
+    return config_values
+
+config = read_config()
+
+mongoclient = pymongo.MongoClient(config['mongo_connstr'])
+db = mongoclient[config['mongo_db']]
 fs = gridfs.GridFS(db)
 logging.basicConfig(level=logging.INFO)
+
 
 class RubbishTrackerService:
 
