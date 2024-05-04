@@ -11,6 +11,7 @@ from bson import json_util
 import gridfs
 from shapely.geometry import Point
 import configparser
+from shapely.geometry.polygon import Polygon
 
 def read_config():
     # Create a ConfigParser object
@@ -108,6 +109,38 @@ class RubbishTrackerService:
     def getAllReports(self):
         return self.parse_json(list(db.reports.find({})))
     
+    def saveArea(self,points, areaName, areaId):
+        poly = Polygon(points)
+        polyarea = poly.area
+        if polyarea <= 0:
+            raise TypeError("invalid polygon for " + areaName + ". Order matters")
+        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+        
+        area2Save = {
+            "areaName":areaName,
+            "points":points,
+            "savedAtUTC":rightnowUTC,
+            "polyArea":polyarea
+        }
+        if not(areaId is None):
+            area = db.areas.find_one({'_id': ObjectId(areaId)})
+            if not((area) is None):
+                area2Save['_id'] = ObjectId(areaId)
+                db.areas.delete_one({'_id': ObjectId(areaId)})
+
+        db.areas.insert_one(area2Save)
+        logging.info("saved area id" + str(area2Save['_id'])) 
+
+    def getArea(self, areaId):
+        return self.parse_json(db.areas.find_one({'_id': ObjectId(areaId)}))
+    
+    def getAreas(self):
+        return self.parse_json(list(db.areas.find({})))
+    
+    def deleteArea(self,areaId):
+        db.areas.delete_one({'_id': ObjectId(areaId)})
+        logging.info("run delete area doc with id " + str(areaId)) 
+
     def createReports(self,reports, userId):
         user = db.users.find_one({'_id': ObjectId(userId)})
         if (user) is None:
