@@ -172,7 +172,7 @@ class RubbishTrackerService:
 
     def deleteReportImg(self,imgId):
         db.images.delete_one({'_id': ObjectId(imgId)})
-        logging.info("deleted img doc with id " + str(imgId)) 
+        logging.info("run delete img doc with id " + str(imgId)) 
 
     #todo with gridfs
     def saveReportPicture(self, filename, reportId):
@@ -180,24 +180,27 @@ class RubbishTrackerService:
         if (report) is None:
             raise TypeError("reportId not found " + reportId) 
         rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000) 
-        oldImgId = db.dereference(report['picture'])['_id']
+        pictures = []
+        if 'pictures' in report:
+            pictures = report['pictures']             
         with open(filename, 'rb') as f:
             contents = f.read()
             doc = {
                 "img": bson.Binary(pickle.dumps(contents)),
                 "filename":filename,
                 "createdAtUTC":rightnowUTC
-
             }
             db.images.insert_one(doc)
-
+            logging.info("created img wwith id " + str(doc["_id"]))
+            pictures.append(DBRef("images",ObjectId(doc["_id"])))   
+        
         db.reports.find_one_and_update(
             {"_id" : ObjectId(reportId)},
             {"$set":
-                {"picture": DBRef("images",ObjectId(doc["_id"]))}
+                {"pictures": pictures}
             },upsert=False
         )
-        self.deleteReportImg(oldImgId)    
+        #self.deleteReportImg(oldImgId)    
         logging.info("saved file " + filename + " for reportid " + reportId)  
 
     def countReportsInPolygon(self,polygon, reports):

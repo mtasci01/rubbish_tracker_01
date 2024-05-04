@@ -4,7 +4,7 @@ from service.rubbish_tracker_service import RubbishTrackerService
 
 service = RubbishTrackerService()
 
-imgObj = service.downloadReportImg("663265b6976f3ac40985ad2e")
+imgObj = service.downloadReportImg("6636065034fff810067180d3")
 
 rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
 
