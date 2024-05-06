@@ -145,20 +145,20 @@ class RubbishTrackerService:
         user = db.users.find_one({'_id': ObjectId(userId)})
         if (user) is None:
             raise TypeError("userId not found " + userId)
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+        
         reports2Save = []
         for report in reports:
             report2Save = {}
             report2Save["lat"] = report["lat"]
             report2Save["lon"] = report["lon"]
             report2Save["desc"] = report["desc"]
-            report['user'] = DBRef("users", ObjectId(user["_id"]))
-            report['createdAtUTC'] = rightnowUTC
+            report2Save['user'] = DBRef("users", ObjectId(user["_id"]))
+            report2Save['createdAtUTC'] = report['createdAt']
             reports2Save.append(report2Save)
-        db.reports.insert_many(reports)
+        db.reports.insert_many(reports2Save)
         logging.info("created reports n " + str(len(reports2Save)))  
 
-    def randomReportsInRome(self, numOfPoints, userId,):
+    def randomReportsInRome(self, numOfPoints, userId):
         if numOfPoints < 3:
             raise TypeError("pass at least 3 numOfPoints")
         # rubbish in rome, we generate at random more rubbish in the center
@@ -192,7 +192,7 @@ class RubbishTrackerService:
         i = 0
         rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
         for point in points:
-            reqJsonO = {"lat":point[1], "lon":point[0], "desc":"rubbish report " + str(rightnowUTC) + "_" + str(i)}
+            reqJsonO = {"lat":point[1], "lon":point[0],"createdAt":rightnowUTC, "desc":"rubbish report " + str(rightnowUTC) + "_" + str(i)}
             reports2Save.append(reqJsonO)
             i = i + 1
         self.createReports(reports2Save, userId)
@@ -266,6 +266,17 @@ class RubbishTrackerService:
         for m in results:
             l.append(m)
         return l    
+    
+    def randomPointsinPolygon(self,polygon, number):
+        points = []
+        minx, miny, maxx, maxy = polygon.bounds
+        while len(points) < number:
+            p0 = np.random.uniform(minx, maxx)
+            p1 = np.random.uniform(miny, maxy)
+            pnt = Point(p0, p1)
+            if polygon.contains(pnt):
+                points.append([p0,p1])
+        return points
 
 
     

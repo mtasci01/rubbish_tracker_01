@@ -9,8 +9,9 @@ service = RubbishTrackerService()
 
 reports = service.getLiveReports()
 
-#the edges must be drawn in sequence
-area = service.getArea("6636a276067a84bae086dd20")
+romeAreaId = "6636a57efc30c3d68543acfe"
+
+area = service.getArea(romeAreaId)
 pointsPolygon1 = area['points']
 listPoints = []
 for p in pointsPolygon1:
