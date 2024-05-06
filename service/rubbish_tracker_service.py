@@ -158,44 +158,17 @@ class RubbishTrackerService:
         db.reports.insert_many(reports2Save)
         logging.info("created reports n " + str(len(reports2Save)))  
 
-    def randomReportsInRome(self, numOfPoints, userId):
-        if numOfPoints < 3:
-            raise TypeError("pass at least 3 numOfPoints")
-        # rubbish in rome, we generate at random more rubbish in the center
-        nwCorner = [12.358505, 41.981065]
-        seCorner = [12.610007, 41.791397]
-        horizontalSide = seCorner[0] - nwCorner[0]
-        verticalSide = nwCorner[1] - seCorner[1]
-        center = [(horizontalSide)/2 + nwCorner[0], (verticalSide)/2 + seCorner[1]]
-        minSide = horizontalSide
-        if (verticalSide < minSide):
-            minSide = verticalSide
-        radius = minSide* 0.4
-
+    def randomPointsInCircle(self, center, radius, numOfPoints):
         points = []
         for i in range(numOfPoints):
-            if (random.uniform(0, 1) > 0.2):
-                r = radius * random.uniform(0, 1)
-                theta = random.uniform(0, 1) * 2 * np.pi
-                x =  r * np.cos(theta)
-                y =  r * np.sin(theta)
-                point = np.array([x,y])
-                point = point + np.array(center)
-            else:
-                x = random.uniform(nwCorner[0], seCorner[0])
-                y = random.uniform(seCorner[1], nwCorner[1])
-                point = np.array([x,y])
-            
-            points.append(point)
-
-        reports2Save = []
-        i = 0
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
-        for point in points:
-            reqJsonO = {"lat":point[1], "lon":point[0],"createdAt":rightnowUTC, "desc":"rubbish report " + str(rightnowUTC) + "_" + str(i)}
-            reports2Save.append(reqJsonO)
-            i = i + 1
-        self.createReports(reports2Save, userId)
+            r = radius * random.uniform(0, 1)
+            theta = random.uniform(0, 1) * 2 * np.pi
+            x =  r * np.cos(theta)
+            y =  r * np.sin(theta)
+            point = np.array([x,y])
+            point = point + np.array(center)
+            points.append(point)  
+        return points     
 
     def downloadReportImg(self,imgId):
         record = db.images.find_one({'_id': ObjectId(imgId)})
