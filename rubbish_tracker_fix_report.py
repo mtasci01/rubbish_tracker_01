@@ -1,5 +1,7 @@
+
 from service.rubbish_tracker_service import RubbishTrackerService
 
 service = RubbishTrackerService()
-
-service.fixReport("664246839e88f81403c7b78b")
+rightnowUTC = service.getRightnowUTC()
+reportId = "6639422b871fe7ce3722574c"
+service.fixReport(reportId, rightnowUTC)

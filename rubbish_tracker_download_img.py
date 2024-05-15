@@ -6,7 +6,7 @@ service = RubbishTrackerService()
 
 imgObj = service.downloadReportImg("6636065034fff810067180d3")
 
-rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+rightnowUTC = rightnowUTC = service.getRightnowUTC()
 
 with open(str(rightnowUTC) + "_" + imgObj["filename"], "wb") as binary_file:
     binary_file.write(imgObj["imgBytes"])

@@ -40,6 +40,8 @@ logging.basicConfig(level=logging.INFO)
 
 class RubbishTrackerService:
 
+    def getRightnowUTC(self):
+        return round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
     #todo enum
     def isRole(self,role):
         if (role.upper() == "ADMIN" or role.upper() == "REPORTER"):
@@ -50,7 +52,7 @@ class RubbishTrackerService:
         user = db.users.find_one({'_id': ObjectId(userId)})
         if (user) is None:
             raise TypeError("userId not found ")
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+        rightnowUTC = self.getRightnowUTC()
         report = {}
         report['user'] = DBRef("users", ObjectId(user["_id"]))
         report['createdAtUTC'] = rightnowUTC
@@ -65,7 +67,7 @@ class RubbishTrackerService:
             raise TypeError("createUser(): name null ")
         user = {}
         user['name'] = name
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+        rightnowUTC = self.getRightnowUTC()
         user['createdAtUTC']=rightnowUTC
         if not(self.isRole(role)):
             raise TypeError("role not found " + role)
@@ -77,15 +79,14 @@ class RubbishTrackerService:
         db.reports.delete_one({'_id': ObjectId(reportId)})
         logging.info("deleted report with id " + str(reportId))  
 
-    def fixReport(self, reportId):
+    def fixReport(self, reportId, when):
         report = db.reports.find_one({'_id': ObjectId(reportId)})
         if (report) is None:
             raise TypeError("reportId not found " + reportId)  
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
         db.reports.find_one_and_update(
             {"_id" : ObjectId(reportId)},
             {"$set":
-                {"fixedAtUTC": rightnowUTC}
+                {"fixedAtUTC": when}
             },upsert=False
         )
         logging.info("fixed report with id " + str(reportId))  
@@ -114,7 +115,7 @@ class RubbishTrackerService:
         polyarea = poly.area
         if polyarea <= 0:
             raise TypeError("invalid polygon for " + areaName + ". Order matters")
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
+        rightnowUTC = self.getRightnowUTC()
         
         area2Save = {
             "areaName":areaName,
@@ -185,7 +186,7 @@ class RubbishTrackerService:
         report = db.reports.find_one({'_id': ObjectId(reportId)})
         if (report) is None:
             raise TypeError("reportId not found " + reportId) 
-        rightnowUTC = round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000) 
+        rightnowUTC = self.getRightnowUTC()
         pictures = []
         if 'pictures' in report:
             pictures = report['pictures']             
