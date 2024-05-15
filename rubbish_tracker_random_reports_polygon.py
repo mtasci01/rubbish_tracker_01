@@ -1,4 +1,3 @@
-import datetime
 import numpy as np
 from shapely.geometry import Polygon
 

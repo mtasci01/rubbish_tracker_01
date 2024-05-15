@@ -1,4 +1,3 @@
-import datetime
 import json
 from service.rubbish_tracker_service import RubbishTrackerService
 

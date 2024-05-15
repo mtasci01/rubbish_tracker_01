@@ -1,5 +1,4 @@
 
-import datetime
 from service.rubbish_tracker_service import RubbishTrackerService
 
 service = RubbishTrackerService()
