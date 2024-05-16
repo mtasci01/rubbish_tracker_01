@@ -1,3 +1,5 @@
+from matplotlib import pyplot as plt
+import numpy as np
 from shapely.geometry.polygon import Polygon
 from service.rubbish_tracker_service import RubbishTrackerService 
 from shapely.geometry import Point
@@ -21,9 +23,19 @@ for area in areas:
         point = Point(report['lon'], report['lat'])
         if polygon.contains(point):
             report['area'] = area['areaName']
+            report['distance2Centroid'] = point.distance(polygon.centroid)
+            
             numContained = numContained + 1
+x = []
+y = []
+for report in reports:
+    if str(report['area']).lower()  == "perugia":
+        x.append(report["distance2Centroid"])
+        y.append(report["createdAtUTC"])
 
-print("numReports " + str(numReports) + " numContained " + str(numContained))   
-print(reports[:10])           
+x = np.array(x)
+y = np.array(y)
+plt.scatter(x,y,color='red')
+plt.show()             
 
 
