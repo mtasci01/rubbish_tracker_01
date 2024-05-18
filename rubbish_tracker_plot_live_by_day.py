@@ -22,7 +22,6 @@ for o in l:
     dataObjList.append(dataObj)
 
 dataObjList.sort(key=lambda x: x['dateint'], reverse=False)    
-print(dataObjList)
 
 date_time_xs = []
 ys = []

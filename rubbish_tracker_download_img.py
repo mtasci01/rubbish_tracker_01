@@ -3,7 +3,7 @@ from service.rubbish_tracker_service import RubbishTrackerService
 
 service = RubbishTrackerService()
 
-imgObj = service.downloadReportImg("6636065034fff810067180d3")
+imgObj = service.downloadReportImg("664923acddae83fd7dcb6d5d")
 
 rightnowUTC = rightnowUTC = service.getRightnowUTC()
 

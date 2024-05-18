@@ -48,32 +48,17 @@ class RubbishTrackerService:
             return True
         return False
     
-    def createReport(self,lat,lon,desc,userId):
-        user = db.users.find_one({'_id': ObjectId(userId)})
-        if (user) is None:
-            raise TypeError("userId not found ")
+    def createReport(self,lat,lon,desc):
+    
         rightnowUTC = self.getRightnowUTC()
         report = {}
-        report['user'] = DBRef("users", ObjectId(user["_id"]))
         report['createdAtUTC'] = rightnowUTC
         report['lat'] = lat
         report['lon'] = lon
         report['desc'] = desc
+        report['pictures']=[]
         db.reports.insert_one(report)
         logging.info("created report with id " + str(report["_id"]))  
-    
-    def createUser(self,name,role):
-        if (name) is None:
-            raise TypeError("createUser(): name null ")
-        user = {}
-        user['name'] = name
-        rightnowUTC = self.getRightnowUTC()
-        user['createdAtUTC']=rightnowUTC
-        if not(self.isRole(role)):
-            raise TypeError("role not found " + role)
-        user['role'] = role.upper()
-        db.users.insert_one(user)
-        logging.info("created user with id " + str(user["_id"]))  
 
     def deleteReport(self,reportId):
         db.reports.delete_one({'_id': ObjectId(reportId)})
@@ -99,10 +84,6 @@ class RubbishTrackerService:
             bulk_ops_arr.append(u)
         db.reports.bulk_write(bulk_ops_arr)
         print("fixed num reports: " + str(len(bulk_ops_arr)))
-           
-
-    def getUsers(self):
-        return self.parse_json(list(db.users.find({})))
 
     def parse_json(self, data):
         return json.loads(json_util.dumps(data)) 
@@ -111,7 +92,6 @@ class RubbishTrackerService:
         report = db.reports.find_one({'_id': ObjectId(reportId)})
         if (report) is None:
             return {}
-        report['username'] = db.dereference(report['user'])['name']
         return self.parse_json(report)
     
     def getLiveReports(self):
@@ -152,10 +132,7 @@ class RubbishTrackerService:
         db.areas.delete_one({'_id': ObjectId(areaId)})
         logging.info("run delete area doc with id " + str(areaId)) 
 
-    def createReports(self,reports, userId):
-        user = db.users.find_one({'_id': ObjectId(userId)})
-        if (user) is None:
-            raise TypeError("userId not found " + userId)
+    def createReports(self,reports):
         
         reports2Save = []
         for report in reports:
@@ -163,8 +140,8 @@ class RubbishTrackerService:
             report2Save["lat"] = report["lat"]
             report2Save["lon"] = report["lon"]
             report2Save["desc"] = report["desc"]
-            report2Save['user'] = DBRef("users", ObjectId(user["_id"]))
             report2Save['createdAtUTC'] = report['createdAt']
+            report2Save['pictures']=[]
             reports2Save.append(report2Save)
         db.reports.insert_many(reports2Save)
         logging.info("created reports n " + str(len(reports2Save)))  
@@ -188,6 +165,11 @@ class RubbishTrackerService:
         return {"imgBytes":pickle.loads(record["img"]), "filename":record["filename"]}  
 
     def deleteReportImg(self,imgId):
+        reports = db.reports.find({'pictures': ObjectId(imgId)})
+        for report in reports:
+            report["pictures"] = list(filter(lambda img: not(imgId == str(img)), report["pictures"]))
+            db.reports.update_one({'_id':ObjectId(report["_id"])}, {"$set": report}, upsert=False)
+
         db.images.delete_one({'_id': ObjectId(imgId)})
         logging.info("run delete img doc with id " + str(imgId)) 
 
@@ -209,7 +191,7 @@ class RubbishTrackerService:
             }
             db.images.insert_one(doc)
             logging.info("created img wwith id " + str(doc["_id"]))
-            pictures.append(DBRef("images",ObjectId(doc["_id"])))   
+            pictures.append(ObjectId(doc["_id"]))   
         
         db.reports.find_one_and_update(
             {"_id" : ObjectId(reportId)},
