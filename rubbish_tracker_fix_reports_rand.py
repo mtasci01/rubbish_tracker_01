@@ -26,25 +26,48 @@ for area in areas:
             report['distance2Centroid'] = point.distance(polygon.centroid)
             
             numContained = numContained + 1
-x = []
-y = []
+xs = []
+ys = []
 for report in reports:
     if str(report['area']).lower()  == "perugia":
-        x.append(report["distance2Centroid"])
-        y.append(report["createdAtUTC"])
+        xs.append(report["distance2Centroid"])
+        ys.append(report["createdAtUTC"])
 
-x = np.array(x)
-y = np.array(y)
+xs = np.array(xs)
+ys = np.array(ys)
 
 def findSlopeYIntercept(x1,y1,x2,y2):
     m = (y2-y1)/(x2-x1)
     b = y2 - m*x2
     return m,b
 
-print(findSlopeYIntercept(x.min(), y.max(), x.max(), y.min()))
+xsUp = []
+ysUp = []
 
-plt.scatter(x,y,color='red')
-plt.axline((x.min(), y.max()), (x.max(), y.min()))
+xsDown = []
+ysDown = []
+
+m,b=findSlopeYIntercept(xs.min(), ys.max(), xs.max(), ys.min())
+for i in range(len(xs)):
+    x=xs[i]
+    y =ys[i]
+    yB = x*m + b
+    if y >= yB:
+        ysUp.append(y)
+        xsUp.append(x)
+    else:
+        ysDown.append(y)
+        xsDown.append(x)  
+
+xsDown = np.array(xsDown)
+ysDown = np.array(ysDown)  
+
+xsUp = np.array(xsUp)
+ysUp = np.array(ysUp)   
+
+plt.scatter(xsDown,ysDown,color='red')
+plt.scatter(xsUp,ysUp,color='green')
+plt.axline((xs.min(), ys.max()), (xs.max(), ys.min()))
 plt.show()             
 
 
