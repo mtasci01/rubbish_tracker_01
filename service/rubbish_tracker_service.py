@@ -91,6 +91,16 @@ class RubbishTrackerService:
         )
         logging.info("fixed report with id " + str(reportId))  
 
+    def bulkFixReport(self, reports):
+        bulk_ops_arr = []
+
+        for report in reports:
+            u = pymongo.UpdateOne({"_id": ObjectId(report["_id"]["$oid"])}, {"$set": {"fixedAtUTC": int(report['fixedAtUTC']/1000)*1000}})
+            bulk_ops_arr.append(u)
+        db.reports.bulk_write(bulk_ops_arr)
+        print("fixed num reports: " + str(len(bulk_ops_arr)))
+           
+
     def getUsers(self):
         return self.parse_json(list(db.users.find({})))
 

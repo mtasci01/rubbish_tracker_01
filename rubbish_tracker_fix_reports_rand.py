@@ -1,11 +1,14 @@
 import datetime
-from time import localtime, strftime
 from matplotlib import pyplot as plt
 import numpy as np
 from shapely.geometry.polygon import Polygon
 from service.rubbish_tracker_service import RubbishTrackerService 
 from shapely.geometry import Point
 
+#the idea to randomly fix reports:
+#take open reports in areas - plot distance to area center / creation time - separate this space through a line,
+#prioritize the lower half (closer to center and further in time then) and create random fix time within a week, the other half within 
+#the following week
 
 service = RubbishTrackerService()
 
@@ -13,9 +16,20 @@ reports = service.getAllReports()
 
 reportMap = {}
 
-reports = list(filter(lambda r: not('fixedAtUTC' in r), reports))
+def printEpoch(epochMillis):
+    return datetime.datetime.fromtimestamp(epochMillis/1000).strftime('%c')
+
+def findSlopeYIntercept(x1,y1,x2,y2):
+    m = (y2-y1)/(x2-x1)
+    b = y2 - m*x2
+    return m,b
+
+reports = list(filter(lambda r: not('fixedAtUTC' in r) or r['fixedAtUTC'] == None, reports))
 areas = service.getAreas()
 numReports = len(reports)
+if numReports == 0:
+    print("No reports to fix!!")
+    exit()
 numContained = 0
 for area in areas:
     areaname = area['areaName']
@@ -34,29 +48,20 @@ for area in areas:
             
             numContained = numContained + 1
 
-def printEpoch(epochMillis):
-    return datetime.datetime.fromtimestamp(epochMillis/1000).strftime('%c')      
+      
 for areaname in reportMap:
     reportsInArea = reportMap[areaname]      
     xs = []
     ys = []
     zs=[]
     for report in reportsInArea:
-        #if str(report['area']).lower()  == "perugia":
         xs.append(report["distance2Centroid"])
         ys.append(report["createdAtUTC"])
 
     xs = np.array(xs)
     ys = np.array(ys)
-
-    def findSlopeYIntercept(x1,y1,x2,y2):
-        m = (y2-y1)/(x2-x1)
-        b = y2 - m*x2
-        return m,b
-
     xsUp = []
     ysUp = []
-
     xsDown = []
     ysDown = []
 
@@ -83,8 +88,8 @@ for areaname in reportMap:
         reportsInArea[i]["fixedAtUTC"] = fixtime
         zs.append(fixtime)
         diff = fixtime - y
-        print("y " + printEpoch(y) + " fixtime " + printEpoch(fixtime) + " higher " + str(higher) + " diff " + str(diff))
         
+    service.bulkFixReport(reportsInArea)
 
     xsDown = np.array(xsDown)
     ysDown = np.array(ysDown)  
@@ -92,12 +97,19 @@ for areaname in reportMap:
     xsUp = np.array(xsUp)
     ysUp = np.array(ysUp)  
     zs = np.array(zs) 
+    plt.xlabel("distance to area center")
+    plt.ylabel("creation time")
+    plt.title(areaname)
+    plt.scatter(xsDown,ysDown,color='red')
+    plt.scatter(xsUp,ysUp,color='green')
+    plt.axline((xs.min(), ys.max()), (xs.max(), ys.min()))
 
-    #plt.scatter(xsDown,ysDown,color='red')
-    #plt.scatter(xsUp,ysUp,color='green')
-    #plt.axline((xs.min(), ys.max()), (xs.max(), ys.min()))
     fig = plt.figure()
     ax = plt.axes(projection='3d')
+    ax.set_title(areaname)
+    ax.set_xlabel('distance to area center')
+    ax.set_ylabel('creation time')
+    ax.set_zlabel('fix time')
     ax.scatter3D(xs, ys, zs, c=zs, cmap='Greens')
     plt.show()             
 
