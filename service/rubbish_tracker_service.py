@@ -40,10 +40,18 @@ logging.basicConfig(level=logging.INFO)
 
 class RubbishTrackerService:
 
+    def printEpoch(self,epochMillis):
+        return datetime.datetime.fromtimestamp(epochMillis/1000).strftime('%c')
+
     def writeFile(self,filename, json2Write):
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(json2Write, f, ensure_ascii=False, indent=4)
-        print("created filename -> " + filename)     
+        print("created filename -> " + filename)
+    
+    def writeBinaryFile(self, filename, theBytes):
+        with open(filename, "wb") as binary_file:
+            binary_file.write(theBytes)   
+        print("created filename -> " + filename)          
 
     def getRightnowUTC(self):
         return round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
