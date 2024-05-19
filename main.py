@@ -1,3 +1,4 @@
+import datetime
 import json
 from matplotlib import pyplot as plt
 import numpy as np
@@ -8,7 +9,7 @@ from shapely.geometry import Point
 
 service = RubbishTrackerService()
 
-print("Salvete! This is the RUBBISH TRACKER Menu.")
+print("Salvete! This is the AWESOME RUBBISH TRACKER Menu.")
 print("")
 print("Choose one of the following:")
 print("1. Download reports")
@@ -25,6 +26,11 @@ print("11. Delete Area")
 print("12. Delete Report")
 print("13. Add image to Report")
 print("14. Delete Image")
+print("15. Fix report")
+print("16. Generate random points in area")
+print("17. Fix reports randomly")
+
+print("")
 
 def downloadReports():
     print("Choose: 1. All reports; 2. Live Reports; 3. Fixed Reports")
@@ -115,6 +121,7 @@ def plotReportsDayByDay():
     plt.gcf().autofmt_xdate()
     plt.show()
 
+#not needed, still fun to do
 def getRandomPointsInCircle():
     centerX = input("Enter the center x: ")
     centerY = input("Enter the center y: ")
@@ -151,7 +158,62 @@ def addImg2Report():
 
 def deleteImg():
     imgId = input("Enter the image id: ")
-    service.deleteReportImg(imgId)     
+    service.deleteReportImg(imgId)
+
+def fixReport():
+    reportId = input("Enter the report id: ")
+    service.fixReport(reportId,service.getRightnowUTC())
+
+def genRandomPointsInArea():
+    areaId = input("Enter the area id: ")
+    area = service.getArea(areaId)
+
+    polygon = Polygon(area['points'])
+    numPoints = input("Enter the num of points: ")
+    points = service.randomPointsinPolygon(polygon, int(numPoints))
+
+    reports2Save = []
+    i = 0
+    rightnowUTC = service.getRightnowUTC()
+    oneMonthAgo =  rightnowUTC - 60*60*24*30*1000
+    for point in points:
+        createTime = int(np.random.randint(oneMonthAgo,rightnowUTC,dtype=np.int64))
+        reqJsonO = {"lat":point[1], "lon":point[0],"createdAt":createTime, "desc":"rubbish report " + str(createTime) + "_" + str(i)}
+        reports2Save.append(reqJsonO)
+        i = i + 1
+    result = service.countReportsInPolygon(polygon, reports2Save)    
+    print("Sanity check: " +str(result) + " reports")
+    service.createReports(reports2Save)
+
+def fixReportsRandomly():
+
+    areaPointsMap = service.fixReportsRandomly()
+    for areaname in areaPointsMap:
+        
+        xsDown = np.array(areaPointsMap[areaname]['xsDown'])
+        ysDown = np.array(areaPointsMap[areaname]['ysDown'])  
+
+        xsUp = np.array(areaPointsMap[areaname]['xsUp'])
+        ysUp = np.array(areaPointsMap[areaname]['ysUp'])  
+        zs = np.array(areaPointsMap[areaname]['zs'])
+        xs = np.array(areaPointsMap[areaname]['xs']) 
+        ys = np.array(areaPointsMap[areaname]['ys'])  
+        plt.xlabel("distance to area center")
+        plt.ylabel("creation time")
+        plt.title(areaname)
+        plt.scatter(xsDown,ysDown,color='red')
+        plt.scatter(xsUp,ysUp,color='green')
+        plt.axline((xs.min(), ys.max()), (xs.max(), ys.min()))
+
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.set_title(areaname)
+        ax.set_xlabel('distance to area center')
+        ax.set_ylabel('creation time')
+        ax.set_zlabel('fix time')
+        ax.scatter3D(xs, ys, zs, c=zs, cmap='Greens')
+        plt.show()             
+
 
 val = input("Enter your choice: ") 
 if val == "1":
@@ -181,7 +243,13 @@ elif val == "12":
 elif val == "13":
    addImg2Report()
 elif val == "14":
-   deleteImg()                  
+   deleteImg()
+elif val == "15":
+   fixReport()
+elif val == "16":
+    genRandomPointsInArea()
+elif val == "17":
+    fixReportsRandomly()                                
 else:
     print("Unknown choice. Exiting now")
 

@@ -14,7 +14,7 @@ service = RubbishTrackerService()
 
 reports = service.getAllReports()
 
-reportMap = {}
+
 
 def printEpoch(epochMillis):
     return datetime.datetime.fromtimestamp(epochMillis/1000).strftime('%c')
@@ -23,6 +23,8 @@ def findSlopeYIntercept(x1,y1,x2,y2):
     m = (y2-y1)/(x2-x1)
     b = y2 - m*x2
     return m,b
+
+reportMap = {}
 
 reports = list(filter(lambda r: not('fixedAtUTC' in r) or r['fixedAtUTC'] == None, reports))
 areas = service.getAreas()
