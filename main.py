@@ -1,7 +1,10 @@
+import json
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from service.rubbish_tracker_service import RubbishTrackerService
+from shapely.geometry.polygon import Polygon
+from shapely.geometry import Point
 
 service = RubbishTrackerService()
 
@@ -15,6 +18,9 @@ print("4. Print single area")
 print("5. Download Image")
 print("6. Plot Live Reports")
 print("7. Plot Live Reports Day by Day")
+print("8. Get Random points in Circle")
+print("9. Create Area")
+print("10. Create Report")
 
 def downloadReports():
     print("Choose: 1. All reports; 2. Live Reports; 3. Fixed Reports")
@@ -105,6 +111,24 @@ def plotReportsDayByDay():
     plt.gcf().autofmt_xdate()
     plt.show()
 
+def getRandomPointsInCircle():
+    centerX = input("Enter the center x: ")
+    centerY = input("Enter the center y: ")
+    radius = input("Enter the radius: ")
+    numPoints = input("Enter the number of points: ")
+    points = np.array(service.randomPointsInCircle([float(centerX),float(centerY)], float(radius), int(numPoints)))
+    plt.scatter(points[:,0],points[:, 1],color='red')
+    plt.show()
+
+def createArea():
+    areaname = input("Enter the area name: ")
+    pointsStr = input("Enter the points as a 2d array. Remember order matters as the polygon needs to be a closed shape: ")
+    points = json.loads(pointsStr)
+    service.saveArea(points,areaname,None)
+
+def createReport():
+    print("create report todo")
+
 val = input("Enter your choice: ") 
 if val == "1":
     downloadReports()
@@ -119,7 +143,13 @@ elif val == "5":
 elif val == "6":
    plotLiveReports()
 elif val == "7":
-   plotReportsDayByDay()   
+   plotReportsDayByDay()  
+elif val == "8":
+   getRandomPointsInCircle()
+elif val == "9":
+   createArea()    
+elif val == "10":
+   createReport()         
 else:
     print("Unknown choice. Exiting now")
 
