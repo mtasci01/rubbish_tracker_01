@@ -21,6 +21,10 @@ print("7. Plot Live Reports Day by Day")
 print("8. Get Random points in Circle")
 print("9. Create Area")
 print("10. Create Report")
+print("11. Delete Area")
+print("12. Delete Report")
+print("13. Add image to Report")
+print("14. Delete Image")
 
 def downloadReports():
     print("Choose: 1. All reports; 2. Live Reports; 3. Fixed Reports")
@@ -127,7 +131,27 @@ def createArea():
     service.saveArea(points,areaname,None)
 
 def createReport():
-    print("create report todo")
+    lat = input("Enter the latitude: ")
+    lon = input("Enter the longitude: ")
+    desc = input("Enter the description: ")
+    service.createReport(float(lat),float(lon),desc)
+
+def deleteArea():
+    areaId = input("Enter the areaid: ")
+    service.deleteArea(areaId)
+
+def deleteReport():
+    reportId = input("Enter the report id: ")
+    service.deleteReport(reportId)  
+
+def addImg2Report():
+    reportId = input("Enter the report id: ")
+    filename = input("Enter the filename: ")
+    service.saveReportPicture(filename, reportId)  
+
+def deleteImg():
+    imgId = input("Enter the image id: ")
+    service.deleteReportImg(imgId)     
 
 val = input("Enter your choice: ") 
 if val == "1":
@@ -149,7 +173,15 @@ elif val == "8":
 elif val == "9":
    createArea()    
 elif val == "10":
-   createReport()         
+   createReport()
+elif val == "11":
+   deleteArea()   
+elif val == "12":
+   deleteReport() 
+elif val == "13":
+   addImg2Report()
+elif val == "14":
+   deleteImg()                  
 else:
     print("Unknown choice. Exiting now")
 

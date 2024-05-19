@@ -1,4 +1,4 @@
-useful mongosh:
+mongosh:
 $ use mt_rubbish
 $ db.reports.drop()
 $ db.reports.updateMany({"_id": { $gt: ObjectId('663246839e87f81403c7b7c7') }}, {$set: {createdAtUTC: 1714470273534}})
@@ -7,3 +7,6 @@ $ db.reports.updateMany({},{$set: {fixedAtUTC: null}})
 
 pointsPerugia = [[12.335249,43.106983], [12.331796,43.141681], [12.434317,43.140302], [12.422668,43.084835]]
 pointsRome = [[12.2, 41.6], [12.2, 42.2], [12.8, 42.2], [12.8, 41.6]]
+filename = "resources/AA1nVN00.jpeg"
+
+comment vs code: ctrl + k + c, uncomment ctrl + k + u
