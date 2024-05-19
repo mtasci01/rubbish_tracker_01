@@ -14,7 +14,7 @@ points = service.randomPointsinPolygon(polygon, 200)
 
 reports2Save = []
 i = 0
-rightnowUTC = rightnowUTC = service.getRightnowUTC()
+rightnowUTC = service.getRightnowUTC()
 oneMonthAgo =  rightnowUTC - 60*60*24*30*1000
 for point in points:
     createTime = int(np.random.randint(oneMonthAgo,rightnowUTC,dtype=np.int64))

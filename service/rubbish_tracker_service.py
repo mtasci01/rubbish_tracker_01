@@ -40,13 +40,13 @@ logging.basicConfig(level=logging.INFO)
 
 class RubbishTrackerService:
 
+    def writeFile(self,filename, json2Write):
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(json2Write, f, ensure_ascii=False, indent=4)
+        print("created filename -> " + filename)     
+
     def getRightnowUTC(self):
         return round(datetime.datetime.now(datetime.timezone.utc).timestamp()*1000)
-    #todo enum
-    def isRole(self,role):
-        if (role.upper() == "ADMIN" or role.upper() == "REPORTER"):
-            return True
-        return False
     
     def createReport(self,lat,lon,desc):
     
@@ -86,6 +86,7 @@ class RubbishTrackerService:
         print("fixed num reports: " + str(len(bulk_ops_arr)))
 
     def parse_json(self, data):
+        print(len(data))
         return json.loads(json_util.dumps(data)) 
     
     def getReport(self,reportId):
@@ -95,7 +96,11 @@ class RubbishTrackerService:
         return self.parse_json(report)
     
     def getLiveReports(self):
+        
         return self.parse_json(list(db.reports.find({"fixedAtUTC":None})))
+    
+    def getFixedReports(self):
+        return self.parse_json(list(db.reports.find({"fixedAtUTC":{"$ne":None}})))
     
     def getAllReports(self):
         return self.parse_json(list(db.reports.find({})))
