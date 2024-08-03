@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 import pickle
 import random
 from bson import DBRef, ObjectId
@@ -34,7 +35,7 @@ config = read_config()
 
 mongoclient = pymongo.MongoClient(config['mongo_connstr'])
 db = mongoclient[config['mongo_db']]
-fs = gridfs.GridFS(db)
+fs = gridfs.GridFS(db,"rubbish_fs")
 logging.basicConfig(level=logging.INFO)
 
 
@@ -176,10 +177,10 @@ class RubbishTrackerService:
         return points     
 
     def downloadReportImg(self,imgId):
-        record = db.images.find_one({'_id': ObjectId(imgId)})
-        if (record) is None:
-            raise TypeError("imgId not found " + imgId)
-        return {"imgBytes":pickle.loads(record["img"]), "filename":record["filename"]}  
+        fs_out = fs.get(ObjectId(imgId))
+        img_bytes = fs_out.read()
+        meta = db['rubbish_fs.files'].find_one({"_id":ObjectId(imgId)})
+        return {"imgBytes":img_bytes, "filename":meta['filename']}  
 
     def deleteReportImg(self,imgId):
         reports = db.reports.find({'pictures': ObjectId(imgId)})
@@ -187,7 +188,7 @@ class RubbishTrackerService:
             report["pictures"] = list(filter(lambda img: not(imgId == str(img)), report["pictures"]))
             db.reports.update_one({'_id':ObjectId(report["_id"])}, {"$set": report}, upsert=False)
 
-        db.images.delete_one({'_id': ObjectId(imgId)})
+        fs.delete(ObjectId(imgId))
         logging.info("run delete img doc with id " + str(imgId)) 
 
     #todo with gridfs
@@ -201,14 +202,9 @@ class RubbishTrackerService:
             pictures = report['pictures']             
         with open(filename, 'rb') as f:
             contents = f.read()
-            doc = {
-                "img": bson.Binary(pickle.dumps(contents)),
-                "filename":filename,
-                "createdAtUTC":rightnowUTC
-            }
-            db.images.insert_one(doc)
-            logging.info("created img wwith id " + str(doc["_id"]))
-            pictures.append(ObjectId(doc["_id"]))   
+            pic_id = fs.put(contents,filename=os.path.basename(filename),created_at=rightnowUTC)
+            logging.info("created img wwith id " + str(pic_id))
+            pictures.append(ObjectId(pic_id))   
         
         db.reports.find_one_and_update(
             {"_id" : ObjectId(reportId)},
